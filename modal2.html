@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Modal Form</title>
+<style>
+  body {
+    font-family: "Arial", sans-serif;
+    background: #f4f4f4;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+  }
+
+  #popupForm {
+    display: none;
+    position: fixed;
+    top: 50%; 
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 20px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+    z-index: 999;
+    width: 360px;
+    height: 320px;
+    transition: border-color 0.25s, box-shadow 0.25s;
+  }
+
+  #popupForm h3 { 
+    font-size: 27px;
+    margin-left: 10px;
+    margin-top: 10px;
+  }
+
+  #popupForm input{
+    font-family: "Arial", sans-serif;
+    display: block;
+    margin: 10px auto;
+    width: 90%;
+    padding: 8px;
+    font-size: 14px;
+    border: 2px solid #cab2cc;
+    border-radius: 5px;
+    outline: none;
+    margin-top: 10px;
+  }
+  #popupForm select {
+    font-family: "Arial", sans-serif;
+    display: block;
+    margin: 10px auto;
+    width: 95%;
+    padding: 8px;
+    font-size: 14px;
+    border: 2px solid #cab2cc;
+    border-radius: 5px;
+    outline: none;
+    margin-top: 10px;
+  }
+
+  .form-error {
+    border-color: red !important;
+    box-shadow: 0 0 0 3px rgba(255,0,0,0.15);
+  }
+
+  @keyframes shakeModal {
+    0%   { transform: translate(-50%, -50%); }
+    15%  { transform: translate(calc(-50% - 8px), -50%); }
+    30%  { transform: translate(calc(-50% + 8px), -50%); }
+    45%  { transform: translate(calc(-50% - 6px), -50%); }
+    60%  { transform: translate(calc(-50% + 6px), -50%); }
+    75%  { transform: translate(calc(-50% - 3px), -50%); }
+    100% { transform: translate(-50%, -50%); }
+  }
+
+  .shake {
+    animation: shakeModal 0.35s ease;
+  }
+
+  #popupForm button {
+    margin: 10px;
+    padding: 10px;
+    width: 95%;
+    background: #10a74a;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  #popupForm button:hover { 
+    background: #10a74a;
+  }
+
+  #result {
+    position: relative;
+    margin: 40px auto;
+    padding: 20px;
+    border: 2px solid #10a74a;
+    background: #fdf3ff;
+    border-radius: 8px;
+    width: 360px;
+    min-height: 160px;
+    text-align: left;
+    display: none;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+  }
+
+  #result h4 {
+    text-align: center;
+    margin: 0 0 15px;
+    font-size: 25px;
+    color: #10a74a;
+  }
+
+  #result p {
+    font-size: 16px;
+    margin: 8px 0;
+  }
+</style>
+</head>
+<body>
+
+<form id="popupForm" novalidate>
+  <h3>Enter Details</h3>
+  <input type="text" id="fname" placeholder="Full Name">
+  <input type="number" id="age" placeholder="Age" inputmode="numeric">
+  <select id="gender">
+    <option value="" disabled selected hidden>Select Gender...</option>
+    <option>Male</option>
+    <option>Female</option>
+    <option>Other</option>
+    <option>Prefer Not To Say</option>
+  </select>
+
+  <input type="text" id="otherGender" placeholder="Please specify..." style="display:none;">
+
+  <button type="submit">Submit</button>
+</form>
+
+<div id="result"></div>
+
+<script>
+const form = document.getElementById("popupForm");
+const result = document.getElementById("result");
+const fname = document.getElementById("fname");
+const age = document.getElementById("age");
+const gender = document.getElementById("gender");
+const otherGender = document.getElementById("otherGender");
+
+document.addEventListener("keydown", e => {
+  if (e.ctrlKey && e.altKey && e.key.toLowerCase() === "n") {
+    e.preventDefault();
+    form.style.display = "block";
+    fname.focus();
+  }
+});
+
+gender.addEventListener("change", () => {
+  if (gender.value === "Other") {
+    otherGender.style.display = "block";
+    otherGender.focus();
+  } else {
+    otherGender.style.display = "none";
+    otherGender.value = "";
+  }
+});
+
+gender.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    form.requestSubmit();
+  }
+});
+
+form.addEventListener("keydown", e => {
+  const focusable = Array.from(form.querySelectorAll("input, select, button"))
+    .filter(el => el.style.display !== "none");
+
+  let index = focusable.indexOf(document.activeElement);
+  if (index === -1) return;
+
+  if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+    e.preventDefault();
+    let next = (index + 1) % focusable.length;
+    focusable[next].focus();
+  }
+
+  if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+    e.preventDefault();
+    let prev = (index - 1 + focusable.length) % focusable.length;
+    focusable[prev].focus();
+  }
+});
+
+document.addEventListener("keydown", e => {
+  if (e.altKey && e.key === "1") {
+    e.preventDefault();
+    form.reset();
+    form.classList.remove("form-error", "shake");
+    otherGender.style.display = "none";
+    fname.focus();
+  }
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "SELECT") {
+      document.activeElement.value = "";
+    } else {
+      form.style.display = "none";
+      form.classList.remove("form-error", "shake");
+    }
+  }
+});
+
+function loadFromStorage() {
+  const saved = JSON.parse(localStorage.getItem("formData"));
+  if (saved) {
+    result.innerHTML = `
+      <h4>Submitted Data</h4>
+      <p><b>Full Name:</b> ${saved.name}</p>
+      <p><b>Age:</b> ${saved.age}</p>
+      <p><b>Gender:</b> ${saved.gender}</p>
+    `;
+    result.style.display = "block";
+  }
+}
+
+form.addEventListener("submit", e => {
+  e.preventDefault();
+
+  form.classList.remove("form-error", "shake");
+  let valid = true;
+
+  const nameVal = fname.value.trim();
+  const ageVal = age.value.trim();
+  const genderVal = gender.value;
+  const otherVal = otherGender.value.trim();
+
+  if (!nameVal || !ageVal || !genderVal || (genderVal === "Other" && !otherVal)) {
+    valid = false;
+  }
+
+  if (!valid) {
+    form.classList.add("form-error", "shake");
+    setTimeout(() => {
+      form.classList.remove("form-error", "shake");
+    }, 400);
+    return;
+  }
+
+  const userData = {
+    name: nameVal,
+    age: ageVal,
+    gender: genderVal === "Other" ? otherVal : genderVal
+  };
+
+  localStorage.setItem("formData", JSON.stringify(userData));
+
+  loadFromStorage();
+
+  form.style.display = "none";
+  form.reset();
+  otherGender.style.display = "none";
+});
+
+window.addEventListener("storage", e => {
+  if (e.key === "formData") {
+    loadFromStorage();
+  }
+});
+
+loadFromStorage();
+</script>
+
+</body>
+</html>
